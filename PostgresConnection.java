@@ -1,10 +1,12 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class PostgresConnection {
 
 		private Connection c = null;
 		private final String DATABASE = "USERSPROTO";
+		private final String ORDER_DATABASE = "ORDERSDB";
 		
 		public PostgresConnection() {
 			try {
@@ -43,31 +45,25 @@ public class PostgresConnection {
 			
 		}
 		
-				
 		/**
-		 * getString
-		 * gets variable from database; returns false if parameters off
-		 * @param var <String> : variable to get from database
-		 * @param where <String> : column of given value to identify user
-		 * @param what <String> : given value to identify user
-		 * @return variable <String> if input correct parameters; else returns "invalid"
+		 * createOrdersTable
+		 * creates items table in sql database if not already created
 		 */
-		public String getString(String var, String where, String what) {
+		public void createOrdersTable() {
 			
 			try {
-				
 				Statement stmt = c.createStatement();
-				ResultSet rs = stmt.executeQuery("select " + var + " from " + DATABASE + " where " + where + " = " + what + ";");
-				rs.next();
-				String strOut = rs.getString(var);
-				rs.close();
+				String sql = "CREATE TABLE " + ORDER_DATABASE + " (ORDER_ID INT PRIMARY KEY NOT NULL, "
+					+ "BUYER_ID INT NOT NULL, APPROVED BOOLEAN NOT NULL, ITEMS INTEGER[]);";
+				stmt.executeUpdate(sql);
 				stmt.close();
-				return strOut;
-				
+				c.close();
+				System.out.println("The table has been created");
 			} catch (Exception e) {
-				return "invalid";
+				e.printStackTrace();
+				System.err.println(e.getClass().getName()+": "+e.getMessage());
+				System.exit(0);
 			}
-			
 			
 		}
 				
@@ -93,6 +89,8 @@ public class PostgresConnection {
 		 */
 		public boolean deleteUser(int id) {
 			
+			boolean userDeleted = false;
+			
 			try {
 				
 				if (idExists(id)) {
@@ -103,12 +101,14 @@ public class PostgresConnection {
 					c.commit();
 					stmt.close();
 					
-					return true;
+					userDeleted = true;
 				}
 				
 			} catch (Exception e) {
 				return false;
 			}
+			
+			return userDeleted;
 			
 		}
 		
@@ -147,11 +147,13 @@ public class PostgresConnection {
 				}
 					stmt.close();
 					rs.close();
+					
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.err.println(e.getClass().getName()+": "+e.getMessage());
 				System.exit(0);
 			}
+			
 			return false;
 			
 		}
@@ -290,9 +292,7 @@ public class PostgresConnection {
 		 */
 		public boolean updateName(int id, String newName) {
 			
-			update("NAME", "'" + newName + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("NAME", "'" + newName + "'", Integer.toString(id));
 			
 		}
 		
@@ -305,9 +305,7 @@ public class PostgresConnection {
 		 */
 		public boolean updateEmail(int id, String newEmail) {
 			
-			update("EMAIL",  "'" + newEmail + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("EMAIL",  "'" + newEmail + "'", Integer.toString(id));
 			
 		}
 		
@@ -320,9 +318,7 @@ public class PostgresConnection {
 		 */
 		public boolean updatePassword(int id, String newPassword) {
 			
-			update("PASSWORD",  "'" + newPassword + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("PASSWORD",  "'" + newPassword + "'", Integer.toString(id));
 			
 		}
 		
@@ -335,9 +331,7 @@ public class PostgresConnection {
 		 */
 		public boolean updatePosition(int id, String newPosition) {
 			
-			update("POSITION",  "'" + newPosition + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("POSITION",  "'" + newPosition + "'", Integer.toString(id));
 			
 		}
 		
@@ -350,9 +344,7 @@ public class PostgresConnection {
 		 */
 		public boolean updatePendOrder(int id, int newPendOrder) {
 			
-			update("PENDORDER", "'" + newPendOrder + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("PENDORDER", "'" + newPendOrder + "'", Integer.toString(id));
 			
 		}
 		
@@ -365,9 +357,7 @@ public class PostgresConnection {
 		 */
 		public boolean updatePrevOrder(int id, int newPrevOrder) {
 			
-			update("PREVORDER", "'" + newPrevOrder + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("PREVORDER", "'" + newPrevOrder + "'", Integer.toString(id));
 			
 		}
 
@@ -380,9 +370,7 @@ public class PostgresConnection {
 		 */
 		public boolean updateAddress(int id, String newAddress) {
 			
-			update("ADDRESS",  "'" + newAddress + "'", Integer.toString(id));
-			
-			return idExists(id);
+			return update("ADDRESS",  "'" + newAddress + "'", Integer.toString(id));
 			
 		}
 		
@@ -410,6 +398,285 @@ public class PostgresConnection {
 		}
 		
 		/**
+		 * orderToString
+		 * returns <String> of order data if id is in database; else returns "ORDER NOT FOUND"
+		 * @param orderId <int> order id #
+		 * @return order information <String>
+		 */
+		public String orderToString(int orderId) {
+			
+			if (orderIdExists(orderId)) {
+				
+				String userStr = "Order #" + orderId + ": ";
+				userStr += getBuyer(orderId) + ", ";
+				userStr += getItems(orderId) + ", ";
+				userStr += isApproved(orderId) ? "Approved" : "Not Approved"; 
+				userStr += ", ";
+				userStr += isPurchased(orderId) ? "Purchased" : "Not Purchased";
+				
+				return userStr;
+				
+			}
+			
+			return "ORDER NOT FOUND";
+			
+		}
+		
+		/**
+		 * orderIdExists
+		 * checks if orderId is in order database
+		 * @param orderId <int>
+		 * @return true if orderId is in database
+		 */
+		public boolean orderIdExists(int orderId) {
+			
+			try {
+				Statement stmt = c.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT * FROM " + ORDER_DATABASE + " WHERE ORDER_ID = " + Integer.toString(orderId) + ";");
+				if (rs.next()) {
+					stmt.close();
+					rs.close();
+					return true;
+				}
+					stmt.close();
+					rs.close();
+					
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.err.println(e.getClass().getName()+": "+e.getMessage());
+				System.exit(0);
+			}
+			
+			return false;
+			
+		}
+		
+		/**
+		 * findOrder
+		 * returns order id <int> of input buyer's id if it exists
+		 * @param buyer <int> : id of buyer
+		 * @return order id if buyer's id is valid; else returns -1
+		 */
+		public int findOrder(int buyerId) {
+			
+			try {
+				return Integer.parseInt(getString("ORDER", "BUYER_ID", Integer.toString(buyerId), ORDER_DATABASE));
+			} catch (Exception e) {
+				return -1;
+			}
+			
+		}
+		
+		/**
+		 * getBuyer
+		 * returns buyer id <int> of input order's id if it exists
+		 * @param orderId <int> : id of order
+		 * @return buyer's id if order id is valid; else returns -1
+		 */
+		public int getBuyer(int orderId) {
+			
+			try {
+				return Integer.parseInt(getString("BUYER_ID", "ORDER_ID", Integer.toString(orderId), ORDER_DATABASE));
+			} catch (Exception e) {
+				return -1;
+			}
+			
+		}
+		
+		/**
+		 * isApproved
+		 * returns true if order is approved
+		 * @param orderId <int> : id of order
+		 * @return true if order is approved; else returns false
+		 */
+		public boolean isApproved(int orderId) {
+			
+			try {
+				return (getString("APPROVED", "ORDER_ID", Integer.toString(orderId), ORDER_DATABASE).compareTo("t") == 0);
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		
+		/**
+		 * isPurchased
+		 * returns true if order is purchased
+		 * @param orderId <int> : id of order
+		 * @return true if order is purchased; else returns false
+		 */
+		public boolean isPurchased(int orderId) {
+			
+			try {
+				return (getString("APPROVED", "ORDER_ID", Integer.toString(orderId), ORDER_DATABASE).compareTo("t") == 0);
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		
+		/**
+		 * getItems
+		 * returns items <ArrayList<Integer>> of input order's id if it exists
+		 * @param orderId <int> : id of order
+		 * @return items <ArrayList<Integer>> if valid id entered; else returns null
+		 */
+		public ArrayList<Integer> getItems(int orderId) {
+			
+			try {
+				
+				// String of item list
+				String itemReader =  getString("ITEMS", "ORDER_ID", Integer.toString(orderId), ORDER_DATABASE);
+				
+				// removing curly braces; converting to #,#,# format
+				itemReader = itemReader.substring(1,itemReader.length()-1);
+				
+				ArrayList<Integer> items = new ArrayList<Integer>();
+				
+				// while itemList still has commas
+				while (itemReader.indexOf(',') != -1) {
+					
+					// add next item to list
+					items.add(Integer.parseInt(itemReader.substring(0,itemReader.indexOf(','))));
+					
+					// remove next comma from string
+					itemReader = itemReader.substring(itemReader.indexOf(',') + 1);
+				}
+				
+				// add last item to list
+				items.add(Integer.parseInt(itemReader));
+				
+				// return item list
+				return items;
+				
+			} catch (Exception e) {
+				return null;
+			}
+		}
+		
+		/**
+		 * addOrder
+		 * adds order to orders table
+		 * @param order <int> : id of order
+		 * @return true if order is added; else returns false
+		 */
+		public boolean addOrder(Order order) {
+			
+			try {
+				insert("INSERT INTO " + ORDER_DATABASE + "(ORDER_ID,BUYER_ID,APPROVED,ITEMS,PURCHASED) VALUES(" 
+			+ order.getId() + "," + order.getBuyer() + ",'" + order.isApproved() + "'," + order.getItemsPostgres()+ "," + order.isPurchased() +");");
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+			
+		}
+		
+		/**
+		 * updateBuyer
+		 * changes buyer id if order id exists
+		 * @param orderId <int> order's id #
+		 * @param newBuyerId <id> new buyer id
+		 * @return true if orderId is in database
+		 */
+		public boolean updateBuyer(int orderId, int newBuyerId) {
+			
+			return updateOrder("BUYER_ID", Integer.toString(newBuyerId), Integer.toString(orderId));
+			
+		}
+		
+		/**
+		 * updateOrderId
+		 * changes order id if original order id exists
+		 * @param originalOrderId <int> order's original id #
+		 * @param newOrderId <id> new buyer id
+		 * @return true if originalOrderId is in database
+		 */
+		public boolean updateOrderId(int originalOrderId, int newOrderId) {
+			
+			return updateOrder("ORDER_ID", Integer.toString(newOrderId), Integer.toString(originalOrderId));
+			
+		}
+		
+		/**
+		 * addItem
+		 * adds item to order if orderId exists
+		 * @param orderId <int> order's id #
+		 * @param newItem <id> new item
+		 * @return true if orderId is in database
+		 */
+		public boolean addItem(int orderId, int newItem) {
+			
+			ArrayList<Integer> items = getItems(orderId);
+			items.add(newItem);			
+			
+			return updateOrder("ITEMS", "ARRAY" + items.toString(), Integer.toString(orderId));
+			
+		}
+		
+		/**
+		 * deleteItem
+		 * deletes item from order if orderId exists
+		 * @param orderId <int> order's id #
+		 * @param deletedItem <id> new item
+		 * @return true if orderId is in database
+		 */
+		public boolean deleteItem(int orderId, int deletedItem) {
+			
+			ArrayList<Integer> items = getItems(orderId);
+			
+			if (items.indexOf(deletedItem) != -1) {
+				items.remove(items.indexOf(deletedItem));			
+				return updateOrder("ITEMS", "ARRAY" + items.toString(), Integer.toString(orderId));
+			}
+			
+			return false;
+			
+		}
+		
+		/**
+		 * approveOrder
+		 * approves order if orderId exists
+		 * @param orderId <int> order's id #
+		 * @return true if orderId is in database
+		 */
+		public boolean approveOrder(int orderId) {
+			
+			return updateOrder("APPROVED", "TRUE", Integer.toString(orderId));
+			
+		}
+		
+		/**
+		 * deleteOrder
+		 * deletes order if orderId exists
+		 * @param orderId <int> order's id #
+		 * @return true if orderId is in database
+		 */
+		public boolean deleteOrder(int orderId) {
+			
+			boolean orderDeleted = false;
+			
+			try {
+				
+				if (orderIdExists(orderId)) {
+					c.setAutoCommit(false);
+					Statement stmt = c.createStatement();
+					String sql = "DELETE from " + ORDER_DATABASE + " where ORDER_ID = " + Integer.toString(orderId) + ";";
+					stmt.executeUpdate(sql);
+					c.commit();
+					stmt.close();
+					
+					orderDeleted = true;
+				}
+				
+			} catch (Exception e) {
+				return false;
+			}
+			
+			return orderDeleted;
+			
+		}	
+
+		
+		/**
 		 * update
 		 * updates user in database if id exists
 		 * @param what <String> : column being updated
@@ -419,7 +686,7 @@ public class PostgresConnection {
 		 */
 		public boolean update(String what, String value, String ID) {
 			
-			boolean isUpdated = false;
+			boolean updated = false;
 			
 			try {
 				
@@ -430,14 +697,47 @@ public class PostgresConnection {
 					stmt.executeUpdate(sql);
 					c.commit();
 					stmt.close();
-					isUpdated = true;
+					updated = true;
 				}
 				
 			} catch (Exception e) {
 				return false;
 			}
 			
-			return isUpdated;
+			return updated;
+			
+		}
+		
+		/**
+		 * update
+		 * updates item in database if parameters correct
+		 * @param what <String> : column being updated
+		 * @param value <String> : value being inserted into column
+		 * @param ID <String> : id of row being updated
+		 * @param database <String> : database to update
+		 * @return true if id exists and row is updated
+		 */
+		public boolean updateOrder(String what, String value, String orderID) {
+			
+			boolean updated = false;
+			
+			try {
+				
+				if (orderIdExists(Integer.parseInt(orderID))) {
+					c.setAutoCommit(false);
+					Statement stmt = c.createStatement();
+					String sql = "UPDATE " + ORDER_DATABASE + " set " + what + " = " + value + " where ORDER_ID = " + orderID +";";
+					stmt.executeUpdate(sql);
+					c.commit();
+					stmt.close();
+					updated = true;
+				}
+				
+			} catch (Exception e) {
+				return false;
+			}
+			
+			return updated;
 			
 		}
 		
@@ -460,6 +760,49 @@ public class PostgresConnection {
 				System.err.println(e.getClass().getName()+": "+e.getMessage());
 				System.exit(0);
 			}
+			
+		}
+		
+		/**
+		 * getString
+		 * gets variable from database; returns false if parameters off
+		 * @param var <String> : variable to get from database
+		 * @param where <String> : column of given value to identify user
+		 * @param what <String> : given value to identify user
+		 * @return variable <String> if input correct parameters; else returns "invalid"
+		 */
+		public String getString(String var, String where, String what) {
+			
+			return getString(var,where,what,DATABASE);
+			
+			
+		}
+		
+		/**
+		 * getString
+		 * gets variable from database; returns false if parameters off
+		 * @param var <String> : variable to get from database
+		 * @param where <String> : column of given value to identify row
+		 * @param what <String> : given value to identify row
+		 * @param db <String> : database to pull string from
+		 * @return variable <String> if input correct parameters; else returns "invalid"
+		 */
+		public String getString(String var, String where, String what, String db) {
+			
+			try {
+				
+				Statement stmt = c.createStatement();
+				ResultSet rs = stmt.executeQuery("select " + var + " from " + db + " where " + where + " = " + what + ";");
+				rs.next();
+				String strOut = rs.getString(var);
+				rs.close();
+				stmt.close();
+				return strOut;
+				
+			} catch (Exception e) {
+				return "invalid";
+			}
+			
 			
 		}
 		
