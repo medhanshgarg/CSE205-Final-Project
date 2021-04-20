@@ -9,6 +9,43 @@ public class User {
 				
 	}
 	
+	// converts PostgresConnection.userToString(userId) to User
+	User(String userString) {
+		
+		String userReader = userString.substring(userString.indexOf('#') + 1);
+		
+		this.id = Integer.parseInt(userReader.substring(0,userReader.indexOf(':')));
+		
+		userReader = userReader.substring(userReader.indexOf(':') + 2);
+		
+		this.name = userReader.substring(0,userReader.indexOf(", "));
+		
+		userReader = userReader.substring(userReader.indexOf(", ") + 2);
+		
+		this.email = userReader.substring(0,userReader.indexOf(", "));
+		
+		userReader = userReader.substring(userReader.indexOf(", ") + 2);
+		
+		this.position = userReader.substring(0,userReader.indexOf(", "));
+		
+		userReader = userReader.substring(userReader.indexOf(", ") + 2);
+		
+		this.password = userReader.substring(0,userReader.indexOf(", "));
+		
+		userReader = userReader.substring(userReader.indexOf(", ") + 2);
+		
+		this.address = userReader.substring(0,userReader.indexOf(", "));
+		
+		userReader = userReader.substring(userReader.indexOf(", ") + 2);
+		
+		this.prevorder = Integer.parseInt(userReader.substring(0,userReader.indexOf(", ")));
+		
+		userReader = userReader.substring(userReader.indexOf(", ") + 2);
+		
+		this.pendorder = Integer.parseInt(userReader);
+		
+	}
+	
 	User(String name, String email, String password, String position, String address) {
 		
 		this.name = name;
@@ -71,6 +108,7 @@ public class User {
 		this.address = address;
 	}
 	
+	// returns new 7 digit id
 	public int newID() {
 		PostgresConnection db = new PostgresConnection();
 		
@@ -80,13 +118,15 @@ public class User {
 		return newId;
 	}
 	
+	// returns true if user has an id, name, valid email, password, position, and address
 	public boolean dataComplete() {
-		if (getId() > 0 && getName() != null && getEmail() != null && getPassword() != null && getPosition() != null && getAddress() != null) {
+		if (getId() > 0 && getName() != null && emailIsValid(getEmail()) && getPassword() != null && getPosition() != null && getAddress() != null) {
 			return true;
 		}
 		return false;
 	}
 	
+	// adds user to database; returns true if successful
 	public boolean addToDatabase() {
 		
 		if (dataComplete()) {
@@ -104,5 +144,58 @@ public class User {
 		return false;
 		
 	}
+	
+	// returns true if email is valid
+	public static boolean emailIsValid(String email) {
+		
+		String emailReader;
+		
+		// does email contain '@'
+		if (email.indexOf('@') == -1) {
+			return false;
+		}
+		
+		// does email contain at least one character before '@'
+		emailReader = email.substring(0,email.indexOf('@'));
+		if (emailReader.length() < 1) {
+			return false;
+		}
+		
+		// does email contain '.' after '@'
+		if (email.indexOf('.','@') == -1) {
+			return false;
+		}
+		
+		// does email contain at least one character between '@' and '.'
+		emailReader = email.substring(email.indexOf('@'),email.indexOf('.'));
+		if (emailReader.length() < 1) {
+			return false;
+		}
+		
+		// does email contain at least one character after '.' after '@'
+		emailReader = email.substring(email.indexOf('.','@'));
+		if (emailReader.length() < 2) {
+			return false;
+		}
+		
+		// email is valid
+		return true;
+		
+	}
+	
+	public String toString() {
+		
+		String str = "User #";
+		str += getId() + ": ";
+		str += getName() + ", ";
+		str += getEmail() + ", ";
+		str += getPosition() + ", ";
+		str += getPassword() + ", ";
+		str += getAddress() + ", ";
+		str += getPrevorder() + ", ";
+		str += getPendorder();
+		return str;
+	}
+	
 	
 }
