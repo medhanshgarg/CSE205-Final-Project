@@ -7,6 +7,8 @@ public class PostgresConnection {
 		private Connection c = null;
 		private final String DATABASE = "USERSPROTO";
 		private final String ORDER_DATABASE = "ORDERSDB";
+
+		// this is a doubly cool comment
 		
 		public PostgresConnection() {
 			try {
