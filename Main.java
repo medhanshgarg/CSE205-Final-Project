@@ -16,6 +16,7 @@ public class Main implements ActionListener {
 	private static JLabel passwordlabel;
 	private static JPasswordField passwordText;
 	private static JButton button;
+	private static JButton button2;
 	private static JLabel success;
 	
 	
@@ -58,8 +59,9 @@ public class Main implements ActionListener {
 		panel.add(success);
 		
 		
-		JButton button2 = new JButton("Register");
+		 button2 = new JButton("Register");
 		button2.setBounds(180,80,120,25);
+		button2.addActionListener(new Main());
 		panel.add(button2);
 		
 		
@@ -69,15 +71,24 @@ public class Main implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String user = userText.getText();
-		String password = passwordText.getText();
-		System.out.println(user + ", " + password);
-		// TODO Auto-generated method stub
 		
-		if(user.contentEquals("sam") && password.equals("sam")) {
-			success.setText("Login is successful!!!");
-		}else {
-			success.setText("Login Failed");
+		
+		if(e.getSource()==button2) {
+			JFrame registration = new RegistrationForm();
+			registration.setVisible(true);
+			
+		}
+		if(e.getSource() == button) {
+			String user = userText.getText();
+			String password = passwordText.getText();
+			System.out.println(user + ", " + password);
+			// TODO Auto-generated method stub
+			
+			if(user.contentEquals("sam") && password.equals("sam")) {
+				success.setText("Login is successful!!!");
+			}else {
+				success.setText("Login Failed");
+			}
 		}
 		
 	}  
