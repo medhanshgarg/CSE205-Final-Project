@@ -11,8 +11,8 @@ import javax.swing.JTextField;
 
 public class Main implements ActionListener {
 	
-	private static JLabel userLabel;
-	private static JTextField userText;
+	private static JLabel emailLabel;
+	private static JTextField emailText;
 	private static JLabel passwordlabel;
 	private static JPasswordField passwordText;
 	private static JButton button;
@@ -32,13 +32,13 @@ public class Main implements ActionListener {
 		panel.setLayout(null);
 		
 		
-		JLabel userlabel = new JLabel("Email Address");
-		userlabel.setBounds(10, 20, 80, 25);
-		panel.add(userlabel);
+		JLabel emailLabel = new JLabel("Email Address");
+		emailLabel.setBounds(10, 20, 80, 25);
+		panel.add(emailLabel);
 		
-		userText = new JTextField(20);
-		userText.setBounds(100,20,165,25);
-		panel.add(userText);
+		emailText = new JTextField(20);
+		emailText.setBounds(100,20,165,25);
+		panel.add(emailText);
 		
 	    passwordlabel = new JLabel("Password");
 		passwordlabel.setBounds(10, 50, 80, 25);
@@ -79,19 +79,23 @@ public class Main implements ActionListener {
 			
 		}
 		if(e.getSource() == button) {
-			String user = userText.getText();
+			String email = emailText.getText();
 			String password = passwordText.getText();
-			System.out.println(user + ", " + password);
+			System.out.println(email + ", " + password);
 			// TODO Auto-generated method stub
+			PostgresConnection db = new PostgresConnection();
+			int id = db.findId(email);
 			
-			if(user.contentEquals("sam") && password.equals("sam")) {
+			if(db.getPassword(id).equals(password)) {
 				success.setText("Login is successful!!!");
+				main2.openShoppingPage(new User(id));
+				
 			}else {
 				success.setText("Login Failed");
 			}
+			db.close();
 		}
 		
-	}  
-	
+	}  	
 	
 }
