@@ -13,14 +13,11 @@ public class ShoppingPage extends JFrame implements ActionListener {
 	Order order;
 	
 	JTextField searchBar;
-	JButton searchButton, checkOutButton;
+	JButton searchButton, checkOutButton, logoutButton;
 	
 	JLabel[] itemNameLabels,itemQtyLabels, itemPriceLabels, itemNumberLabels, addedToCartLabels;
 	JComboBox[] itemQtys;
 	JButton[] addToCartButtons;
-	
-	// Make it so there are page #s at bottom
-	// (add constructer ShoppingPage(User, page#)
 
 	ShoppingPage(User user) {
 		
@@ -62,6 +59,11 @@ public class ShoppingPage extends JFrame implements ActionListener {
 		checkOutButton.setBounds(680,20,110,20);
 		checkOutButton.addActionListener(this);
 		c.add(checkOutButton);
+		
+		logoutButton = new JButton("Log out");
+		logoutButton.setBounds(40,20,80,20);
+		logoutButton.addActionListener(this);
+		c.add(logoutButton);
 		
 		itemNameLabels = new JLabel[itemBank.length()];
 		itemQtys = new JComboBox[itemBank.length()];
@@ -115,6 +117,7 @@ public class ShoppingPage extends JFrame implements ActionListener {
 				return;
 			}
 			try {
+				addedToCartLabels[i].setText("");
 				c.remove(addedToCartLabels[i]);
 			} catch (Exception e) {
 				
@@ -215,7 +218,6 @@ public class ShoppingPage extends JFrame implements ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		
 		if (e.getSource() == searchButton) {
 			
@@ -230,6 +232,10 @@ public class ShoppingPage extends JFrame implements ActionListener {
 			
 			search(searchBar.getText());
 			return;
+		}
+		
+		if (e.getSource() == logoutButton) {
+			dispose();
 		}
 		
 		if (e.getSource() == checkOutButton) {
