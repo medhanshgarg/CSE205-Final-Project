@@ -32,7 +32,7 @@ public class Main implements ActionListener {
 		panel.setLayout(null);
 		
 		
-		JLabel userlabel = new JLabel("Username");
+		JLabel userlabel = new JLabel("Email Address");
 		userlabel.setBounds(10, 20, 80, 25);
 		panel.add(userlabel);
 		
