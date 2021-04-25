@@ -1,4 +1,3 @@
-package practice01;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,12 +17,13 @@ public class Main implements ActionListener {
 	private static JButton button;
 	private static JButton button2;
 	private static JLabel success;
+	static JFrame frame;
 	
 	
 	
 	public static void main(String[] args) { 
 		JPanel panel = new JPanel();
-		JFrame frame = new JFrame();
+		frame = new JFrame();
 		frame.setSize(350,300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -76,20 +76,19 @@ public class Main implements ActionListener {
 		if(e.getSource()==button2) {
 			JFrame registration = new RegistrationForm();
 			registration.setVisible(true);
-			
+			frame.dispose();
 		}
 		if(e.getSource() == button) {
 			String email = emailText.getText();
 			String password = passwordText.getText();
-			System.out.println(email + ", " + password);
-			// TODO Auto-generated method stub
+			
 			PostgresConnection db = new PostgresConnection();
 			int id = db.findId(email);
 			
 			if(db.getPassword(id).equals(password)) {
 				success.setText("Login is successful!!!");
 				main2.openShoppingPage(new User(id));
-				
+				frame.dispose();
 			}else {
 				success.setText("Login Failed");
 			}
