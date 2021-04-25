@@ -7,13 +7,14 @@ public class PostgresConnection {
 		private Connection c = null;
 		private final String DATABASE = "USERSPROTO";
 		private final String ORDER_DATABASE = "ORDERSDB";
+		private final String POSTGRES_PASSWORD = "PaaFPOWE_(#";
 		
 		public PostgresConnection() {
 			try {
 				Class.forName("org.postgresql.Driver");
 				c = DriverManager.getConnection(
 						"jdbc:postgresql://localhost:5432/usersdb",
-						"postgres", "PaaFPOWE_(#");
+						"postgres", POSTGRES_PASSWORD);
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.err.println(e.getClass().getName()+": "+e.getMessage());
@@ -167,10 +168,34 @@ public class PostgresConnection {
 		public boolean addUser(User user) {
 			
 			if (user.dataComplete()) {
+				
 				insert("INSERT INTO " + DATABASE + "(ID,NAME,EMAIL,PASSWORD,PENDORDER,POSITION,PREVORDER,ADDRESS) VALUES(" 
 			+ user.getId() + ",'" + user.getName() + "','" + user.getEmail() + "','" + user.getPassword() + "'," + user.getPendorder() 
 			+ ",'" + user.getPosition() + "',"+ user.getPrevorder() + ",'" + user.getAddress() + "');");
 				return true;
+			}
+			return false;
+		}
+		
+		/**
+		 * updateUser
+		 * Updates user in database if they already exist in database
+		 * @param user <User>
+		 * @return true if user is updated correctly
+		 */
+		public boolean updateUser(User user) {
+			
+			if (idExists(user.getId())) {
+				
+				updateName(user.getId(), user.getName());
+				updateEmail(user.getId(), user.getEmail());
+				updatePosition(user.getId(), user.getPosition());
+				updatePassword(user.getId(), user.getPassword());
+				updateAddress(user.getId(), user.getAddress());
+				updatePrevOrder(user.getId(), user.getPrevorder());
+				updatePendOrder(user.getId(), user.getPendorder());
+				return true;
+				
 			}
 			return false;
 		}
@@ -423,6 +448,29 @@ public class PostgresConnection {
 		}
 		
 		/**
+		 * updateOrder
+		 * updates order in database if it is already in the database
+		 * @param order <Order>
+		 * @return true if order is already in database
+		 */
+		public boolean updateOrder(Order order) {
+			
+			if (orderIdExists(order.getId())) {
+				
+				updateBuyer(order.getId(), order.getBuyer());
+				updateItems(order.getId(), order.getItemsPostgres());
+				if (order.isApproved())
+					approveOrder(order.getId());
+				if (order.isPurchased()) 
+					purchaseOrder(order.getId());
+				
+			}
+			
+			return false;
+			
+		}
+		
+		/**
 		 * orderIdExists
 		 * checks if orderId is in order database
 		 * @param orderId <int>
@@ -460,7 +508,7 @@ public class PostgresConnection {
 		public int findOrder(int buyerId) {
 			
 			try {
-				return Integer.parseInt(getString("ORDER", "BUYER_ID", Integer.toString(buyerId), ORDER_DATABASE));
+				return Integer.parseInt(getString("ORDER_ID", "BUYER_ID", Integer.toString(buyerId), ORDER_DATABASE));
 			} catch (Exception e) {
 				return -1;
 			}
@@ -507,7 +555,7 @@ public class PostgresConnection {
 		public boolean isPurchased(int orderId) {
 			
 			try {
-				return (getString("APPROVED", "ORDER_ID", Integer.toString(orderId), ORDER_DATABASE).compareTo("t") == 0);
+				return (getString("PURCHASED", "ORDER_ID", Integer.toString(orderId), ORDER_DATABASE).compareTo("t") == 0);
 			} catch (Exception e) {
 				return false;
 			}
@@ -600,13 +648,29 @@ public class PostgresConnection {
 		 * addItem
 		 * adds item to order if orderId exists
 		 * @param orderId <int> order's id #
-		 * @param newItem <id> new item
+		 * @param newItem <int> new item id
 		 * @return true if orderId is in database
 		 */
 		public boolean addItem(int orderId, int newItem) {
 			
 			ArrayList<Integer> items = getItems(orderId);
 			items.add(newItem);			
+			
+			return updateOrder("ITEMS", "ARRAY" + items.toString(), Integer.toString(orderId));
+			
+		}
+		
+		/**
+		 * addItem
+		 * adds item to order if orderId exists
+		 * @param orderId <int> order's id #
+		 * @param newItem <Item> new Item
+		 * @return true if orderId is in database
+		 */
+		public boolean addItem(int orderId, Item newItem) {
+			
+			ArrayList<Integer> items = getItems(orderId);
+			items.add(newItem.getId());			
 			
 			return updateOrder("ITEMS", "ARRAY" + items.toString(), Integer.toString(orderId));
 			
@@ -633,6 +697,19 @@ public class PostgresConnection {
 		}
 		
 		/**
+		 * updateItems
+		 * updates items in order if order exists
+		 * @param orderId <int> order's id #
+		 * @param newItems <String> new set of items (in format compatible w/ postgres)
+		 * @return true if orderId is in database
+		 */
+		public boolean updateItems(int orderId, String newItems) {
+			
+			return updateOrder("ITEMS", newItems, Integer.toString(orderId));
+			
+		}
+		
+		/**
 		 * approveOrder
 		 * approves order if orderId exists
 		 * @param orderId <int> order's id #
@@ -641,6 +718,18 @@ public class PostgresConnection {
 		public boolean approveOrder(int orderId) {
 			
 			return updateOrder("APPROVED", "TRUE", Integer.toString(orderId));
+			
+		}
+		
+		/**
+		 * purchaseOrder
+		 * purchases order if orderId exists
+		 * @param orderId <int> order's id #
+		 * @return true if orderId is in database
+		 */
+		public boolean purchaseOrder(int orderId) {
+			
+			return updateOrder("PURCHASED", "TRUE", Integer.toString(orderId));
 			
 		}
 		
@@ -674,6 +763,12 @@ public class PostgresConnection {
 			return orderDeleted;
 			
 		}	
+		
+		public int getQty(int orderId, int itemId) {
+			int qty = 0;
+			
+			return qty;
+		}
 
 		
 		/**
