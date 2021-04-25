@@ -21,7 +21,7 @@ public class CheckOutPage extends JFrame implements ActionListener {
 	Order order;
 	
 	JTextField searchBar;
-	JButton searchButton, checkOutButton;
+	JButton searchButton, checkOutButton, logoutButton;
 	JLabel yourCartLabel;
 	
 	JLabel[] itemNameLabels,itemQtyLabels, itemPriceLabels, itemNumberLabels, totalPriceLabels;
@@ -39,7 +39,7 @@ public class CheckOutPage extends JFrame implements ActionListener {
 				i -= 1;
 			}
 		}
-		//this.itemBank = new ItemList();
+		
 		setTitle("Check Out Page");
 		setSize(1000,700);
 		setLocationRelativeTo(null);
@@ -65,6 +65,11 @@ public class CheckOutPage extends JFrame implements ActionListener {
 		checkOutButton.setBounds(200,500,150,40);
 		checkOutButton.addActionListener(this);
 		c.add(checkOutButton);
+		
+		logoutButton = new JButton("Log out");
+		logoutButton.setBounds(40,20,80,20);
+		logoutButton.addActionListener(this);
+		c.add(logoutButton);
 		
 		itemNameLabels = new JLabel[pageItems.length()];
 		itemQtys = new JComboBox[pageItems.length()];
@@ -119,33 +124,6 @@ public class CheckOutPage extends JFrame implements ActionListener {
 			c.remove(totalPriceLabels[i]);
 			c.remove(removeFromCartButtons[i]);
 		}
-	}
-	
-	public void search(String search) {
-		
-		ArrayList<String> searchItems = new ArrayList<String>();
-		int index = 0;
-		while (index < search.length()-1 && search.lastIndexOf(" ") > index) {
-			if (search.substring(index, index + 1).compareTo(" ") != 0) {
-				searchItems.add(search.substring(index, search.substring(index).indexOf(" ") + index));
-				index += search.substring(index).indexOf(" ") + 1;
-			} else {
-				index ++;
-			}
-		}
-		if (!search.substring(index).equals(" ") && index < search.length()-1) {
-			searchItems.add(search.substring(index));
-		}
-		
-		removeItems();
-		pageItems = new ItemList(searchItems);
-		
-		for (int i = 0; i < pageItems.length(); i++) {
-			displayItem(i, 70 + 95*i);
-		}
-		
-		c.repaint();
-		
 	}
 	
 	public JLabel itemNameLabel(Item item, int x, int y, int width, int height) {
@@ -235,6 +213,41 @@ public class CheckOutPage extends JFrame implements ActionListener {
 			dispose();
 			return;
 		}
+
+		if (e.getSource() == checkOutButton) {
+			
+			if (!order.isEmpty()) {
+				
+				double totalPrice = 0;
+				int qty = order.length() - 1;
+				for (int i = 0; i < pageItems.length(); i++) {
+					totalPrice += Double.parseDouble(itemQtys[i].getSelectedItem().toString()) *  pageItems.get(i).getPrice();
+				}
+				NumberFormat formatter = NumberFormat.getCurrencyInstance();
+				String checkoutText = "Your order for " + qty + " items (" + formatter.format(totalPrice) + ") was completed successfully";				
+				removeItems();
+				order.checkOut();
+				order = new Order(user);
+				user = new User(user.getId());
+				while (pageItems.length() > 0) {
+					pageItems.remove(0);
+				}
+				
+				JLabel checkOutLabel = new JLabel(checkoutText);
+				checkOutLabel.setBounds(175,210,700,40);
+				checkOutLabel.setFont(new Font("times new roman", Font.PLAIN, 25));
+				c.add(checkOutLabel);
+				
+			}
+			
+			c.repaint();
+			return;
+		}
+		
+		if (e.getSource() == logoutButton) {
+			dispose();
+			return;
+		}
 		
 		for (int i = 0; i < pageItems.length(); i++) {
 			if (e.getSource() == itemQtys[i]) {
@@ -258,24 +271,6 @@ public class CheckOutPage extends JFrame implements ActionListener {
 				}
 				c.repaint();
 				return;
-			}
-			
-			if (e.getSource() == checkOutButton) {
-				
-				order.purchase();
-				
-				if (user.getPrevorder() != -1) {
-					Order existingOrder = new Order(user, "prevorder");
-					existingOrder.mergeOrder(pageItems);
-					order.updateInDatabase();
-					existingOrder.updateInDatabase();
-				} else {
-					user.setPrevorder(order.getId());
-				}
-				PostgresConnection db = new PostgresConnection();
-				db.updateUser(user);
-				db.close();
-				
 			}
 			
 		}
