@@ -209,7 +209,7 @@ public class CheckOutPage extends JFrame implements ActionListener {
 		// TODO Auto-generated method stub
 		
 		if (e.getSource() == searchButton) {
-			main2.openShoppingPage(user, searchBar.getText());
+			Main.openShoppingPage(user, searchBar.getText());
 			dispose();
 			return;
 		}
@@ -278,3 +278,4 @@ public class CheckOutPage extends JFrame implements ActionListener {
 	}
 	
 }
+
