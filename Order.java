@@ -73,6 +73,7 @@ public class Order {
 			orderReader = orderReader.substring(orderReader.indexOf(',') + 2);
 			
 			this.purchased = orderReader.compareTo("Purchased") == 0;
+			
 		} catch (Exception e) {
 			
 		}
