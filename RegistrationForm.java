@@ -191,7 +191,11 @@ class RegistrationForm extends JFrame implements ActionListener {
 			user.setAddress(ta1.getText());
 			if (user.addToDatabase()) {
 				submit.setText("REGISTRATION SUCCESSFUL!!");
-				main2.openShoppingPage(user);
+				if (!user.getPosition().equals(User.CUSTOMER_POSITION)) {
+					Main.openItemModification(user.getPosition(), new ItemList());
+				} else {
+					Main.openShoppingPage(user);
+				}
 				dispose();
 				return;
 			} else {
