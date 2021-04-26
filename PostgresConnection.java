@@ -4,6 +4,16 @@ import java.util.Random;
 
 public class PostgresConnection {
 
+	
+	/* to create tables and connect to a postgres database:
+	 * change POSTGRES_PASSWORD to your postgres password,
+	 * run the following:
+	 * 
+	 * PostgresConnection db = new PostgresConnection();
+	 * db.createDatabaseTable();
+	 * db.createOrdersTable();
+	 * db.close();
+	 */
 		private Connection c = null;
 		private final String DATABASE = "USERSPROTO";
 		private final String ORDER_DATABASE = "ORDERSDB";
@@ -306,6 +316,25 @@ public class PostgresConnection {
 				return -1;
 			}
 			
+		}
+		
+		/**
+		 * getAllPrevOrders
+		 * returns ArrayList with id of every prevorder in database
+		 * @return prevorders <ArrayList<Integer>> of every prevorder in database if id is in database
+		 */
+		public ArrayList<Integer> getAllPrevOrders() {
+			ArrayList<Integer> prevorders = new ArrayList<Integer>();
+			try {
+				Statement stmt = c.createStatement();
+				ResultSet rs =  stmt.executeQuery("SELECT ORDER_ID FROM " + ORDER_DATABASE + " WHERE PURCHASED = TRUE;");
+				while (rs.next()) {
+					prevorders.add(rs.getInt("order_id"));	
+				}
+			} catch(Exception e) {
+				return prevorders;
+			}
+			return prevorders;
 		}
 		
 		/**
