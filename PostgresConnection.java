@@ -9,10 +9,21 @@ public class PostgresConnection {
 	 * change POSTGRES_PASSWORD to your postgres password,
 	 * run the following:
 	 * 
-	 * PostgresConnection db = new PostgresConnection();
-	 * db.createDatabaseTable();
-	 * db.createOrdersTable();
-	 * db.close();
+	 	PostgresConnection db = new PostgresConnection();
+	 	db.createDatabaseTable();
+	 	db.createOrdersTable();
+	 	db.close();
+	 	
+	 	// to add a manager so you can log employees in:
+	   	User user = new User();
+	   	user.setName("MANAGER");
+	   	user.setEmail("manager@email.com");
+	 	user.setAddress("address");
+	 	user.setPassword("pw");
+	 	user.setPosition(User.MANAGER_POSITION);
+	 	PostgresConnection db = new PostgresConnection();
+	 	db.addUser(user);
+	 	db.close();
 	 */
 		private Connection c = null;
 		private final String DATABASE = "USERSPROTO";
