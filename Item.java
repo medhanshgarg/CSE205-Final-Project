@@ -6,7 +6,7 @@ import javax.swing.JLabel;
 public class Item {
 
 	private String name;
-	private int id;
+	private int id, quantity;
 	private double price;
 	private ArrayList<String> tags;
 	
@@ -19,6 +19,7 @@ public class Item {
 		this.id = id;
 		this.price = price;
 		this.tags = tags;
+		this.quantity = 9999;
 		if (this.tags.indexOf(this.name) == -1)
 			this.tags.add(this.name);
 	}
@@ -28,7 +29,9 @@ public class Item {
 	}
 
 	public void setName(String name) {
-		tags.remove(tags.indexOf(this.name));
+		if (this.tags.indexOf(this.name) != -1) {
+			tags.remove(tags.indexOf(this.name));
+		}
 		this.name = name.toUpperCase();
 		tags.add(this.name);
 	}
@@ -63,7 +66,14 @@ public class Item {
 		this.tags = tags;
 	}
 	
-	// MAYBE REMOVE
+	public int getQuantity() {
+		return this.quantity;
+	}
+	
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+	
 	public JLabel itemLabel(int x, int y, int width, int height) {
 		JLabel itemLabel = new JLabel();
 		itemLabel.setText(getName());
