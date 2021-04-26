@@ -45,6 +45,10 @@ public class ItemList {
 		return itemList;
 	}
 	
+	public ArrayList<String> getTags() {
+		return itemTags;
+	}
+	
 	public void setItemList(ArrayList<Item> itemList) {
 		this.itemList = itemList;
 	}
@@ -89,7 +93,12 @@ public class ItemList {
 	}
 	
 	public int indexOf(Item item) {
-		return itemList.indexOf(item);
+		for (int i = 0; i < itemList.size(); i++) {
+			if (itemList.get(i).toString().equals(item.toString())) {
+				return i;
+			}
+		}
+		return -1;
 	}
 	
 	public int length() {
@@ -114,7 +123,6 @@ public class ItemList {
 		return indexes;
 	}
 	
-	// DONT LOOK AT THIS!!! IT IS HIDEOUS!!!!
 	public void addItemStock() {
 		addStockTags();
 		itemList.add(new Item("CAKE",1,19.5,new ArrayList<String>(itemTags.subList(0, 3))));
