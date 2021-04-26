@@ -239,7 +239,7 @@ public class ShoppingPage extends JFrame implements ActionListener {
 		}
 		
 		if (e.getSource() == checkOutButton) {
-			main2.openCheckOut(user);
+			Main.openCheckOut(user);
 			dispose();
 			return;
 		}
